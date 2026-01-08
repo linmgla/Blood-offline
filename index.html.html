@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血染鐘樓活動行事曆</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #f5c6cb;
+        }
+        
+        .filters-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .filter-btn:active {
+            transform: translateY(0);
+        }
+        
+        .filter-btn.hidden {
+            opacity: 0.4;
+        }
+        
+        .filter-btn.hidden:hover {
+            opacity: 0.7;
+        }
+        
+        .calendar-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e9ecef;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .weekday-header {
+            display: contents;
+        }
+        
+        .weekday-cell {
+            background: #495057;
+            color: white;
+            text-align: center;
+            padding: 15px 5px;
+            font-weight: 600;
+        }
+        
+        .day-cell {
+            background: white;
+            min-height: 120px;
+            padding: 12px;
+            position: relative;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        .day-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .date-text {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .event {
+            padding: 8px 10px;
+            margin: 6px 0;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .event:hover {
+            transform: translateX(3px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        
+        .event.hidden {
+            opacity: 0.3;
+            text-decoration: line-through;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .event-time {
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .event-title {
+            font-weight: 500;
+        }
+        
+        .event-location {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        
+        .empty-cell {
+            background: #f8f9fa;
+            color: #adb5bd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            min-height: 120px;
+        }
+        
+        .no-events-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-size: 1.1rem;
+            display: none;
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .status-indicator {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .update-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: right;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .refresh-btn {
+            background: #4dabf7;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .refresh-btn:hover {
+            background: #3d9be8;
+        }
+        
+        .refresh-btn:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        .data-info {
+            background: #e7f5ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #1864ab;
+        }
+        
+        @media (max-width: 1200px) {
+            .calendar-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .calendar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 700px) {
+            .calendar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-btn {
+                width: 100%;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .update-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .day-cell {
+                min-height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 血染鐘樓活動行事曆</h1>
+            <div class="subtitle">即時更新，隨時掌握最新開團資訊</div>
+        </header>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div>正在從Google Sheets載入活動資料...</div>
+        </div>
+        
+        <div id="errorContainer" class="error-message" style="display: none;"></div>
+        
+        <div id="content" style="display: none;">
+            <div class="data-info">
+                📊 資料來源：Google Sheets | 總活動數：<span id="totalEvents">0</span> | 
+                地點數：<span id="totalLocations">0</span>
+            </div>
+            
+            <div class="filters-container">
+                <div class="filters" id="filters">
+                    <div class="filter-label">地點篩選：</div>
+                    <!-- 篩選按鈕會由JavaScript生成 -->
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <div class="update-info">
+                    <div>
+                        最後更新時間：<span id="lastUpdate">-</span>
+                    </div>
+                    <button id="refreshBtn" class="refresh-btn">
+                        🔄 重新整理
+                    </button>
+                </div>
+                
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- 星期表頭和日曆內容會由JavaScript生成 -->
+                </div>
+                
+                <div class="no-events-message" id="noEvents">
+                    目前選擇的地點沒有活動安排
+                </div>
+                
+                <div class="status-bar" id="statusBar">
+                    <div>顯示所有地點的活動</div>
+                    <div class="status-indicator" id="statusIndicator">
+                        <!-- 狀態指示器會動態生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3>📝 使用說明</h3>
+                <ul>
+                    <li>點擊上方地點按鈕可切換顯示/隱藏該地點活動</li>
+                    <li>按鈕顏色變淡表示該地點活動已隱藏</li>
+                    <li>點擊活動可直接打開報名連結</li>
+                    <li>活動時間均為24小時制</li>
+                    <li>資料從Google Sheets即時更新（點擊重新整理按鈕）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheet CSV 連結 - 使用你提供的連結
+        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8GSdmGL5ggYr0ADz2fwltf9mBgv-77ggRneKQOBnebWG9HGOwsqpbhn5wpYgrezLHUNwIxi1ACm5r/pub?output=csv';
+        
+        // 預設地點顏色配置（會根據實際資料動態更新）
+        let locationConfig = {};
+        
+        // 初始化變數
+        let eventData = [];
+        let hiddenLocations = new Set();
+        let lastUpdateTime = null;
+        let isLoading = false;
+        
+        // 初始化函數
+        async function init() {
+            try {
+                await loadDataFromGoogleSheet();
+                hideLoading();
+                showContent();
+                updateDataInfo();
+                generateFilterButtons();
+                generateCalendar();
+                updateStatusBar();
+                setupRefreshButton();
+            } catch (error) {
+                showError('載入資料失敗：' + error.message);
+                hideLoading();
+            }
+        }
+        
+        // 從Google Sheet載入資料
+        async function loadDataFromGoogleSheet() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            try {
+                console.log('開始載入Google Sheets資料...');
+                const response = await fetch(GOOGLE_SHEET_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP錯誤: ${response.status} ${response.statusText}`);
+                }
+                
+                const csvText = await response.text();
+                console.log('收到CSV資料，長度:', csvText.length);
+                
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                
+                if (lines.length < 2) {
+                    throw new Error('CSV檔案沒有資料或格式錯誤');
+                }
+                
+                // 解析CSV標頭
+                const headers = lines[0].split(',').map(h => h.trim());
+                console.log('CSV標頭:', headers);
+                
+                // 檢查必要欄位
+                const requiredColumns = ['日期', '時間', '地點', '劇本名稱', '報名連結'];
+                const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+                
+                if (missingColumns.length > 0) {
+                    throw new Error(`缺少必要欄位: ${missingColumns.join(', ')}`);
+                }
+                
+                // 解析資料行
+                eventData = [];
+                const locationSet = new Set();
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    try {
+                        // 使用更穩健的CSV解析
+                        const row = parseCSVLine(line);
+                        
+                        if (row.length >= headers.length) {
+                            const date = row[headers.indexOf('日期')]?.trim() || '';
+                            const time = row[headers.indexOf('時間')]?.trim() || '';
+                            const location = row[headers.indexOf('地點')]?.trim() || '';
+                            const script = row[headers.indexOf('劇本名稱')]?.trim() || '';
+                            const link = row[headers.indexOf('報名連結')]?.trim() || '';
+                            
+                            // 驗證必要欄位
+                            if (date && time && location && script && link) {
+                                // 格式化日期
+                                let formattedDate;
+                                try {
+                                    // 移除時間部分，只保留日期
+                                    const dateOnly = date.split(' ')[0];
+                                    const dateObj = new Date(dateOnly);
+                                    
+                                    if (isNaN(dateObj.getTime())) {
+                                        // 嘗試其他格式
+                                        const parts = dateOnly.split('-');
+                                        if (parts.length === 3) {
+                                            formattedDate = dateOnly;
+                                        } else {
+                                            console.warn('日期格式無法解析:', date);
+                                            continue;
+                                        }
+                                    } else {
+                                        formattedDate = dateObj.toISOString().split('T')[0];
+                                    }
+                                } catch (e) {
+                                    console.warn('日期解析錯誤:', date, e);
+                                    continue;
+                                }
+                                
+                                eventData.push({
+                                    date: formattedDate,
+                                    time: time.split(' ')[0], // 只保留時間部分
+                                    location: location,
+                                    script: script,
+                                    link: link
+                                });
+                                
+                                locationSet.add(location);
+                                
+                                // 動態更新地點配置
+                                if (location && !locationConfig[location]) {
+                                    locationConfig[location] = generateLocationColor(location);
+                                }
+                            } else {
+                                console.warn('第', i, '行資料不完整，已跳過:', {date, time, location, script, link});
+                            }
+                        }
+                    } catch (rowError) {
+                        console.error('解析第', i, '行時發生錯誤:', rowError);
+                        console.error('行內容:', line);
+                    }
+                }
+                
+                // 按日期排序
+                eventData.sort((a, b) => {
+                    try {
+                        const dateA = new Date(a.date);
+                        const dateB = new Date(b.date);
+                        return dateA - dateB;
+                    } catch (e) {
+                        return 0;
+                    }
+                });
+                
+                // 更新時間戳
+                lastUpdateTime = new Date();
+                document.getElementById('lastUpdate').textContent = 
+                    lastUpdateTime.toLocaleString('zh-TW');
+                
+                console.log(`成功載入 ${eventData.length} 筆活動資料`);
+                console.log('發現的地點:', Array.from(locationSet));
+                
+            } catch (error) {
+                console.error('載入Google Sheet資料時發生錯誤:', error);
+                throw error;
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // 簡單的CSV行解析器
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    if (i + 1 < line.length && line[i + 1] === '"') {
+                        // 雙引號表示一個引號
+                        current += '"';
+                        i++; // 跳過下一個引號
+                    } else {
+                        // 切換引號狀態
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result;
+        }
+        
+        // 為新地點生成顏色
+        function generateLocationColor(locationName) {
+            // 使用字串的hash值來生成一致的顏色
+            let hash = 0;
+            for (let i = 0; i < locationName.length; i++) {
+                hash = locationName.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            const hue = Math.abs(hash % 360);
+            
+            // 生成一組協調的顏色
+            return {
+                color: `hsl(${hue}, 70%, 50%)`,
+                bgColor: `hsl(${hue}, 70%, 95%)`,
+                borderColor: `hsl(${hue}, 70%, 50%)`,
+                hiddenColor: `hsl(${hue}, 30%, 95%)`,
+                hiddenBorder: `hsl(${hue}, 30%, 70%)`
+            };
+        }
+        
+        // 顯示/隱藏介面元素
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showContent() {
+            document.getElementById('content').style.display = 'block';
+        }
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.textContent = '❌ ' + message;
+            errorContainer.style.display = 'block';
+        }
+        
+        // 更新資料統計資訊
+        function updateDataInfo() {
+            document.getElementById('totalEvents').textContent = eventData.length;
+            document.getElementById('totalLocations').textContent = Object.keys(locationConfig).length;
+        }
+        
+        // 設定重新整理按鈕
+        function setupRefreshButton() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            refreshBtn.addEventListener('click', async () => {
+                if (isLoading) return;
+                
+                try {
+                    refreshBtn.disabled = true;
+                    refreshBtn.innerHTML = '⏳ 載入中...';
+                    
+                    // 顯示載中狀態
+                    document.getElementById('loading').style.display = 'flex';
+                    document.getElementById('content').style.display = 'none';
+                    document.getElementById('errorContainer').style.display = 'none';
+                    
+                    await loadDataFromGoogleSheet();
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                    
+                    // 更新所有顯示
+                    updateDataInfo();
+                    generateFilterButtons();
+                    generateCalendar();
+                    updateStatusBar();
+                    
+                } catch (error) {
+                    showError('重新整理失敗：' + error.message);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '🔄 重新整理';
+                }
+            });
+        }
+        
+        // 生成篩選按鈕
+        function generateFilterButtons() {
+            const filtersContainer = document.getElementById('filters');
+            
+            // 清空現有按鈕（保留標籤）
+            const label = filtersContainer.querySelector('.filter-label');
+            filtersContainer.innerHTML = '';
+            if (label) filtersContainer.appendChild(label);
+            
+            // 按字母排序地點
+            const sortedLocations = Object.keys(locationConfig).sort();
+            
+            // 為每個地點生成按鈕
+            sortedLocations.forEach(location => {
+                const isHidden = hiddenLocations.has(location);
+                const config = locationConfig[location];
+                
+                const button = document.createElement('button');
+                button.className = `filter-btn ${isHidden ? 'hidden' : ''}`;
+                button.textContent = location;
+                button.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
+                button.style.color = isHidden ? '#adb5bd' : config.color;
+                button.style.border = `2px solid ${isHidden ? config.hiddenBorder : config.borderColor}`;
+                
+                button.addEventListener('click', () => toggleLocation(location));
+                
+                filtersContainer.appendChild(button);
+            });
+        }
+        
+        // 切換地點顯示/隱藏
+        function toggleLocation(location) {
+            if (hiddenLocations.has(location)) {
+                hiddenLocations.delete(location);
+            } else {
+                hiddenLocations.add(location);
+            }
+            
+            generateFilterButtons();
+            generateCalendar();
+            updateStatusBar();
+        }
+        
+        // 更新狀態欄
+        function updateStatusBar() {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = statusBar.querySelector('div:first-child');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const hiddenCount = hiddenLocations.size;
+            const totalLocations = Object.keys(locationConfig).length;
+            
+            if (hiddenCount === 0) {
+                statusText.textContent = "顯示所有地點的活動";
+                statusBar.style.backgroundColor = "#e7f5ff";
+                statusBar.style.color = "#1864ab";
+            } else if (hiddenCount === totalLocations) {
+                statusText.textContent = "所有地點活動皆已隱藏";
+                statusBar.style.backgroundColor = "#f8f9fa";
+                statusBar.style.color = "#6c757d";
+            } else {
+                const hiddenList = Array.from(hiddenLocations).join('、');
+                statusText.textContent = `已隱藏：${hiddenList}`;
+                statusBar.style.backgroundColor = "#fff3cd";
+                statusBar.style.color = "#856404";
+            }
+            
+            // 更新狀態指示器
+            updateStatusIndicator(statusIndicator);
+        }
+        
+        // 更新狀態指示器
+        function updateStatusIndicator(container) {
+            container.innerHTML = '';
+            
+            // 按字母排序地點
+            const sortedLocations = Object.keys(locationConfig).sort();
+            
+            sortedLocations.forEach((location, index) => {
+                const config = locationConfig[location];
+                const isHidden = hiddenLocations.has(location);
+                
+                const dot = document.createElement('div');
+                dot.className = 'indicator-dot';
+                dot.style.background = isHidden ? config.hiddenBorder : config.color;
+                dot.title = isHidden ? `${location} (已隱藏)` : location;
+                
+                const text = document.createElement('span');
+                text.textContent = location;
+                text.style.opacity = isHidden ? '0.5' : '1';
+                
+                container.appendChild(dot);
+                container.appendChild(text);
+                
+                // 添加間距（除了最後一個）
+                if (index < sortedLocations.length - 1) {
+                    const spacer = document.createElement('span');
+                    spacer.style.marginLeft = '10px';
+                    spacer.style.marginRight = '10px';
+                    container.appendChild(spacer);
+                }
+            });
+        }
+        
+        // 生成日曆
+        function generateCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            const noEventsMessage = document.getElementById('noEvents');
+            
+            // 清空整個日曆
+            calendarGrid.innerHTML = '';
+            
+            // 添加星期表頭
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            weekdays.forEach(day => {
+                const weekdayCell = document.createElement('div');
+                weekdayCell.className = 'weekday-cell';
+                weekdayCell.textContent = day;
+                calendarGrid.appendChild(weekdayCell);
+            });
+            
+            // 建立2026年12月的日曆數據
+            const currentMonth = 12;
+            const currentYear = 2026;
+            const calendarData = createCalendarData(currentMonth, currentYear);
+            let hasVisibleEvents = false;
+            
+            // 生成每一天的單元格
+            calendarData.forEach(day => {
+                const dayCell = document.createElement('div');
+                
+                if (day.isEmpty) {
+                    dayCell.className = 'day-cell empty-cell';
+                    dayCell.textContent = '';
+                } else {
+                    dayCell.className = 'day-cell';
+                    
+                    // 日期標題
+                    const dayNumber = document.createElement('div');
+                    dayNumber.className = 'day-number';
+                    
+                    const dayText = document.createElement('span');
+                    dayText.textContent = `${day.month}/${day.date}`;
+                    
+                    const weekdayText = document.createElement('span');
+                    weekdayText.className = 'date-text';
+                    weekdayText.textContent = `(${day.weekday})`;
+                    
+                    dayNumber.appendChild(dayText);
+                    dayNumber.appendChild(weekdayText);
+                    dayCell.appendChild(dayNumber);
+                    
+                    // 查找該日期的活動
+                    const dayEvents = getEventsForDate(day.fullDate);
+                    let hasVisibleDayEvents = false;
+                    
+                    if (dayEvents.length > 0) {
+                        dayEvents.forEach(event => {
+                            const isHidden = hiddenLocations.has(event.location);
+                            
+                            if (!isHidden) {
+                                hasVisibleEvents = true;
+                                hasVisibleDayEvents = true;
+                            }
+                            
+                            const eventDiv = document.createElement('div');
+                            eventDiv.className = `event ${isHidden ? 'hidden' : ''}`;
+                            
+                            const config = locationConfig[event.location];
+                            if (config) {
+                                eventDiv.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
+                                eventDiv.style.borderLeftColor = isHidden ? config.hiddenBorder : config.borderColor;
+                                eventDiv.style.color = isHidden ? '#adb5bd' : '#333';
+                            }
+                            
+                            // 事件內容
+                            const timeSpan = document.createElement('span');
+                            timeSpan.className = 'event-time';
+                            timeSpan.textContent = event.time.substring(0, 5);
+                            
+                            const titleSpan = document.createElement('span');
+                            titleSpan.className = 'event-title';
+                            titleSpan.textContent = event.script;
+                            
+                            const locationSpan = document.createElement('span');
+                            locationSpan.className = 'event-location';
+                            locationSpan.textContent = event.location;
+                            
+                            eventDiv.appendChild(timeSpan);
+                            eventDiv.appendChild(titleSpan);
+                            eventDiv.appendChild(locationSpan);
+                            
+                            // 點擊事件（只有未隱藏時可點擊）
+                            if (!isHidden && event.link) {
+                                eventDiv.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    window.open(event.link, '_blank');
+                                });
+                                eventDiv.style.cursor = 'pointer';
+                            } else if (isHidden) {
+                                eventDiv.style.cursor = 'not-allowed';
+                            }
+                            
+                            dayCell.appendChild(eventDiv);
+                        });
+                    }
+                    
+                    // 如果當天沒有可見的活動，顯示"無活動"
+                    if (!hasVisibleDayEvents) {
+                        const noEvent = document.createElement('div');
+                        noEvent.className = 'event';
+                        noEvent.textContent = "無活動";
+                        noEvent.style.backgroundColor = "#f8f9fa";
+                        noEvent.style.color = "#adb5bd";
+                        noEvent.style.borderLeftColor = "#dee2e6";
+                        noEvent.style.cursor = "default";
+                        dayCell.appendChild(noEvent);
+                    }
+                }
+                
+                calendarGrid.appendChild(dayCell);
+            });
+            
+            // 顯示/隱藏無活動訊息
+            const totalLocations = Object.keys(locationConfig).length;
+            if (!hasVisibleEvents && hiddenLocations.size > 0) {
+                noEventsMessage.style.display = 'block';
+                if (hiddenLocations.size === totalLocations) {
+                    noEventsMessage.textContent = '所有地點活動皆已隱藏';
+                } else {
+                    noEventsMessage.textContent = '目前選擇的地點沒有活動安排';
+                }
+            } else {
+                noEventsMessage.style.display = 'none';
+            }
+        }
+        
+        // 獲取指定日期的活動
+        function getEventsForDate(date) {
+            return eventData.filter(event => event.date === date);
+        }
+        
+        // 創建月曆數據
+        function createCalendarData(month, year) {
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
+            
+            const calendarData = [];
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            
+            // 添加空白單元格（讓第一天對應到正確的星期）
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                calendarData.push({
+                    date: '',
+                    month: month,
+                    weekday: weekdays[i],
+                    fullDate: '',
+                    isEmpty: true
+                });
+            }
+            
+            // 添加本月日期
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month - 1, day);
+                calendarData.push({
+                    date: day,
+                    month: month,
+                    weekday: weekdays[date.getDay()],
+                    fullDate: `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+                    isEmpty: false
+                });
+            }
+            
+            return calendarData;
+        }
+        
+        // 頁面加載時初始化
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // 自動重新整理（每5分鐘）
+        setInterval(async () => {
+            if (!isLoading) {
+                console.log('自動重新整理資料...');
+                try {
+                    await loadDataFromGoogleSheet();
+                    updateDataInfo();
+                    generateFilterButtons();
+                    generateCalendar();
+                    updateStatusBar();
+                } catch (error) {
+                    console.error('自動重新整理失敗:', error);
+                }
+            }
+        }, 5 * 60 * 1000); // 5分鐘
+    </script>
+</body>
+</html>
