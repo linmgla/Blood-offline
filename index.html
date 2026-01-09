@@ -68,6 +68,14 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
+        .by-text {
+            font-size: 1rem;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 10px;
+            text-shadow: none;
+        }
+        
         .filters-container {
             background: white;
             border-radius: 10px;
@@ -441,6 +449,10 @@
             h1 {
                 font-size: 2rem;
             }
+            
+            .by-text {
+                font-size: 0.9rem;
+            }
         }
         
         @media (max-width: 500px) {
@@ -450,6 +462,10 @@
             
             h1 {
                 font-size: 1.8rem;
+            }
+            
+            .by-text {
+                font-size: 0.8rem;
             }
             
             .day-cell {
@@ -470,7 +486,9 @@
                 <div class="header-logo">
                     <img src="https://meee.com.tw/ctqdoRm.jpg" alt="血染鐘樓Logo">
                 </div>
-                <h1>血染鐘樓活動行事曆</h1>
+                <div>
+                    <h1>血染鐘樓活動行事曆<span class="by-text">by 曉風</span></h1>
+                </div>
             </div>
         </header>
         
@@ -909,7 +927,7 @@
                 if (!hasVisibleDayEvents && dayEvents.length === 0) {
                     const noEvent = document.createElement('div');
                     noEvent.className = 'event';
-                    noEvent.textContent = "無活動";
+                    noEvent.textContent = "暫無活動";
                     noEvent.style.backgroundColor = "#f8f9fa";
                     noEvent.style.color = "#adb5bd";
                     noEvent.style.borderLeftColor = "#dee2e6";
