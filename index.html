@@ -28,21 +28,44 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #6c757d;
             border-radius: 15px;
             color: white;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .header-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
+            margin: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
         }
         
         .filters-container {
@@ -134,7 +157,7 @@
         
         .day-cell.today {
             background-color: #fff9e6;
-            border: 2px solid #ffe594;
+            border: 2px solid #ffc107;
             box-shadow: inset 0 0 8px rgba(255, 193, 7, 0.2);
         }
         
@@ -257,6 +280,128 @@
             margin-bottom: 5px;
         }
         
+        /* 自定義提示框樣式 */
+        .custom-tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 250px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .custom-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        /* 點擊活動時的提示框樣式 */
+        .event-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .event-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background-color: #6c757d;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .event-detail {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .event-detail-icon {
+            width: 24px;
+            margin-right: 12px;
+            color: #6c757d;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .event-detail-text {
+            flex: 1;
+        }
+        
+        .modal-footer {
+            padding: 16px 24px 24px;
+            text-align: center;
+        }
+        
+        .modal-btn {
+            padding: 12px 32px;
+            background-color: #4dabf7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin: 0 5px;
+        }
+        
+        .modal-btn:hover {
+            background-color: #339af0;
+        }
+        
+        .modal-btn.secondary {
+            background-color: #6c757d;
+        }
+        
+        .modal-btn.secondary:hover {
+            background-color: #5a6268;
+        }
+        
         @media (max-width: 1200px) {
             .calendar-grid {
                 grid-template-columns: repeat(4, 1fr);
@@ -282,6 +427,20 @@
             .filter-btn {
                 width: 100%;
             }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-logo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
         }
         
         @media (max-width: 500px) {
@@ -290,11 +449,16 @@
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
             .day-cell {
                 min-height: 100px;
+            }
+            
+            .modal-btn {
+                padding: 10px 20px;
+                font-size: 14px;
             }
         }
     </style>
@@ -302,8 +466,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>🕰️ 血染鐘樓開團行事曆</h1>
-            <div class="subtitle">隨時掌握最新開團資訊</div>
+            <div class="header-content">
+                <div class="header-logo">
+                    <img src="https://meee.com.tw/ctqdoRm.jpg" alt="血染鐘樓Logo">
+                </div>
+                <h1>血染鐘樓活動行事曆</h1>
+            </div>
         </header>
         
         <div class="filters-container">
@@ -339,8 +507,43 @@
                     <span>101鐘樓</span>
                     <div class="indicator-dot" style="background: #da77f2; margin-left: 10px"></div>
                     <span>歪常研究院</span>
-                    <div class="indicator-dot" style="background: #69db7c; margin-left: 10px"></div>
+                    <div class="indicator-dot" style="background: #3a8c4a; margin-left: 10px"></div>
                     <span>小怪寶家長會</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 點擊活動時顯示的提示框 -->
+        <div class="event-modal" id="eventModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">活動詳細資訊</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="event-detail">
+                        <div class="event-detail-icon">📅</div>
+                        <div class="event-detail-text" id="modalDate">日期：</div>
+                    </div>
+                    <div class="event-detail">
+                        <div class="event-detail-icon">⏰</div>
+                        <div class="event-detail-text" id="modalTime">時間：</div>
+                    </div>
+                    <div class="event-detail">
+                        <div class="event-detail-icon">📍</div>
+                        <div class="event-detail-text" id="modalLocation">地點：</div>
+                    </div>
+                    <div class="event-detail">
+                        <div class="event-detail-icon">🎭</div>
+                        <div class="event-detail-text" id="modalScript">劇本：</div>
+                    </div>
+                    <div class="event-detail">
+                        <div class="event-detail-icon">📖</div>
+                        <div class="event-detail-text" id="modalStoryteller">說書人：</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn" id="modalLinkBtn">前往報名</button>
+                    <button class="modal-btn secondary" id="modalCloseBtn">關閉</button>
                 </div>
             </div>
         </div>
@@ -350,20 +553,22 @@
             <ul>
                 <li>點擊上方地點按鈕可切換顯示/隱藏該地點活動</li>
                 <li>按鈕顏色變淡表示該地點活動已隱藏</li>
-                <li>點擊活動可直接打開報名連結</li>
+                <li>滑鼠懸停在活動上可查看簡要資訊</li>
+                <li>點擊活動可查看詳細資訊並前往報名連結</li>
                 <li>活動時間均為24小時制</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // 使用Excel提供的數據
+        // 使用Excel提供的數據（已更新為包含所有活動）
         const eventData = [
             {
                 date: "2026-01-09",
                 time: "21:00:00",
                 location: "101鐘樓",
                 script: "無限博弈",
+                storyteller: "正哥",
                 link: "https://discord.com/channels/992104499059626004/1458681049646104811"
             },
             {
@@ -371,32 +576,41 @@
                 time: "20:00:00",
                 location: "歪常研究院",
                 script: "含光承影",
+                storyteller: "佐久",
                 link: "https://discord.com/channels/559042233719062551/1458536174149701712"
+            },
+            {
+                date: "2026-01-11",
+                time: "20:00:00",
+                location: "101鐘樓",
+                script: "夢殞春宵",
+                storyteller: "诺特.note",
+                link: "https://discord.com/channels/992104499059626004/1459022741473853561"
             }
         ];
 
-        // 地點顏色配置
+        // 地點顏色配置 - 恢復原本的顏色
         const locationConfig = {
             "101鐘樓": {
-                color: "#4dabf7",
-                bgColor: "#e7f5ff",
-                borderColor: "#4dabf7",
-                hiddenColor: "#f0f8ff",
-                hiddenBorder: "#a5d8ff"
+                color: "#4dabf7",      // 藍色
+                bgColor: "#e7f5ff",    // 淺藍色背景
+                borderColor: "#4dabf7", // 藍色邊框
+                hiddenColor: "#f0f8ff", // 隱藏時的淺藍色
+                hiddenBorder: "#a5d8ff" // 隱藏時的淺藍色邊框
             },
             "歪常研究院": {
-                color: "#da77f2",
-                bgColor: "#f8f0fc",
-                borderColor: "#da77f2",
-                hiddenColor: "#fdf2ff",
-                hiddenBorder: "#e599f7"
+                color: "#da77f2",      // 紫色
+                bgColor: "#f8f0fc",    // 淺紫色背景
+                borderColor: "#da77f2", // 紫色邊框
+                hiddenColor: "#fdf2ff", // 隱藏時的淺紫色
+                hiddenBorder: "#e599f7" // 隱藏時的淺紫色邊框
             },
             "小怪寶家長會": {
-                color: "#69db7c",
-                bgColor: "#ebfbee",
-                borderColor: "#69db7c",
-                hiddenColor: "#f4fcf5",
-                hiddenBorder: "#b2f2bb"
+                color: "#3a8c4a",      // 綠色
+                bgColor: "#e6f7e9",    // 淺綠色背景
+                borderColor: "#3a8c4a", // 綠色邊框
+                hiddenColor: "#f0f9f2", // 隱藏時的淺綠色
+                hiddenBorder: "#a3d9b1" // 隱藏時的淺綠色邊框
             }
         };
 
@@ -415,6 +629,109 @@
         function init() {
             generateFilterButtons();
             generateCalendar();
+            setupModalEvents();
+        }
+        
+        // 設置提示框事件
+        function setupModalEvents() {
+            const modal = document.getElementById('eventModal');
+            const closeBtn = document.getElementById('modalCloseBtn');
+            const linkBtn = document.getElementById('modalLinkBtn');
+            
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+            
+            // 點擊背景關閉提示框
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+            
+            // 為連結按鈕添加點擊事件
+            linkBtn.addEventListener('click', () => {
+                const link = linkBtn.dataset.link;
+                if (link && link !== '#') {
+                    window.open(link, '_blank');
+                }
+                modal.classList.remove('active');
+            });
+        }
+        
+        // 顯示滑鼠懸停提示框
+        function showTooltip(event, eventInfo, dayInfo) {
+            // 移除現有的提示框
+            removeTooltip();
+            
+            // 建立新的提示框
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = `${eventInfo.location} - ${eventInfo.script}`;
+            tooltip.style.opacity = '1';
+            
+            // 定位提示框
+            const rect = event.target.getBoundingClientRect();
+            tooltip.style.left = `${rect.left + rect.width/2}px`;
+            tooltip.style.top = `${rect.top - 40}px`;
+            tooltip.style.transform = 'translateX(-50%)';
+            
+            // 添加到文檔
+            document.body.appendChild(tooltip);
+            
+            // 儲存參考以便移除
+            event.target._tooltip = tooltip;
+            
+            // 設定滑鼠離開事件
+            const removeTooltipHandler = () => removeTooltip();
+            event.target.addEventListener('mouseleave', removeTooltipHandler, { once: true });
+        }
+        
+        // 移除滑鼠懸停提示框
+        function removeTooltip() {
+            const tooltip = document.querySelector('.custom-tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+        }
+        
+        // 顯示點擊活動提示框
+        function showEventModal(eventInfo, dayInfo) {
+            const modal = document.getElementById('eventModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDate = document.getElementById('modalDate');
+            const modalTime = document.getElementById('modalTime');
+            const modalLocation = document.getElementById('modalLocation');
+            const modalScript = document.getElementById('modalScript');
+            const modalStoryteller = document.getElementById('modalStoryteller');
+            const linkBtn = document.getElementById('modalLinkBtn');
+            
+            // 設置提示框內容
+            modalTitle.textContent = eventInfo.script;
+            modalDate.textContent = `日期：${dayInfo.month}/${dayInfo.date}（${dayInfo.weekday}）`;
+            modalTime.textContent = `時間：${eventInfo.time.substring(0, 5)}`;
+            modalLocation.textContent = `地點：${eventInfo.location}`;
+            modalScript.textContent = `劇本：${eventInfo.script}`;
+            modalStoryteller.textContent = `說書人：${eventInfo.storyteller || '待確認'}`;
+            
+            // 設置連結
+            linkBtn.dataset.link = eventInfo.link || '#';
+            if (eventInfo.link && eventInfo.link !== '#') {
+                linkBtn.textContent = '前往報名';
+                linkBtn.style.display = 'inline-block';
+                linkBtn.disabled = false;
+                linkBtn.style.opacity = '1';
+                linkBtn.style.cursor = 'pointer';
+            } else {
+                linkBtn.textContent = '無報名連結';
+                linkBtn.style.display = 'inline-block';
+                linkBtn.disabled = true;
+                linkBtn.style.opacity = '0.6';
+                linkBtn.style.cursor = 'not-allowed';
+            }
+            
+            // 顯示提示框
+            modal.classList.add('active');
         }
         
         // 生成篩選按鈕
@@ -434,6 +751,8 @@
                 const button = document.createElement('button');
                 button.className = `filter-btn ${isHidden ? 'hidden' : ''}`;
                 button.textContent = location;
+                
+                // 恢復原本的按鈕樣式
                 button.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
                 button.style.color = isHidden ? '#adb5bd' : config.color;
                 button.style.border = `2px solid ${isHidden ? config.hiddenBorder : config.borderColor}`;
@@ -564,21 +883,21 @@
                         eventDiv.appendChild(timeSpan);
                         eventDiv.appendChild(titleSpan);
                         
-                        // 點擊事件
-                        if (!isHidden && event.link && event.link !== '#') {
-                            eventDiv.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                window.open(event.link, '_blank');
+                        // 滑鼠懸停事件（顯示簡短提示框）
+                        if (!isHidden) {
+                            eventDiv.addEventListener('mouseenter', (e) => {
+                                showTooltip(e, event, day);
                             });
-                        } else if (!isHidden) {
+                            
+                            eventDiv.addEventListener('mouseleave', removeTooltip);
+                        }
+                        
+                        // 點擊事件（顯示詳細提示框）
+                        if (!isHidden) {
                             eventDiv.addEventListener('click', (e) => {
                                 e.preventDefault();
-                                alert(
-                                    `📅 ${day.month}/${day.date}（${day.weekday}）\n` +
-                                    `🎭 劇本：${event.script}\n` +
-                                    `⏰ 時間：${event.time.substring(0, 5)}\n` +
-                                    `📍 地點：${event.location}`
-                                );
+                                e.stopPropagation();
+                                showEventModal(event, day);
                             });
                         }
                         
@@ -590,7 +909,7 @@
                 if (!hasVisibleDayEvents && dayEvents.length === 0) {
                     const noEvent = document.createElement('div');
                     noEvent.className = 'event';
-                    noEvent.textContent = "暫無活動";
+                    noEvent.textContent = "無活動";
                     noEvent.style.backgroundColor = "#f8f9fa";
                     noEvent.style.color = "#adb5bd";
                     noEvent.style.borderLeftColor = "#dee2e6";
@@ -660,6 +979,3 @@
     </script>
 </body>
 </html>
-
-
-
